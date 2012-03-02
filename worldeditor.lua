@@ -12,6 +12,7 @@ function WorldEditor:init(world)
 
    self.SolidButton = Button("solidButton.png", 1200, 735)
    self.IllusionButton = Button("illusionButton.png", 1180, 735)
+   self.BackgroundButton = Button("illusionButton.png", 1160, 735)
 end
 
 function WorldEditor:Draw(world)
@@ -49,7 +50,7 @@ function WorldEditor:DrawBottomBar()
    love.graphics.setColor(255, 255, 255, 255)
 
    self.PlayButton:Draw()
-
+   self.BackgroundButton:Draw()
 
    self.SolidButton:Draw()
    if self.blockType == "Solid" then
