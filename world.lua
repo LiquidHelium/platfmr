@@ -5,8 +5,9 @@ function World:init(width, height, blockSize)
 	self.height = height
 	self.blockSize = blockSize
 	self.spriteList = SpriteList()
+	self.bgList = BGList()
 	self.level = ""
-   	backgroundSprite = love.graphics.newImage("img/" .. "background.png")
+   	self.backgroundID = 1
 
 	self.solidBlockMap = {}
 	self.illusionBlockMap = {}
@@ -17,6 +18,18 @@ function World:init(width, height, blockSize)
         	self.solidBlockMap[i][z] = 0
         	self.illusionBlockMap[i][z] = 0
 	    end
+	end
+end
+
+function World:GetBGList()
+	return self.bgList
+end
+
+function World:ChangeBG()
+	if self.bgList:ContainsID(self.backgroundID + 1) then
+		self.backgroundID = self.backgroundID + 1
+	else
+   		self.backgroundID = 1
 	end
 end
 
@@ -63,25 +76,30 @@ function World:LoadFromFile(fileLocation)
 	file = io.open("lvl.txt", "r")
 	fileData = file:read("*all")
 	file:close()
-	blockType = "none"
+	dataType = "none"
 
 	y = 0
 	for i, line in pairs(split(fileData, "\n")) do
 		x = 0
-		if (string.find(line, "solid") ~= nil) then blockType = "solid"; y = -1; end
-		if (string.find(line, "illusion") ~= nil) then blockType = "illusion"; y = -1; end
+		if (string.find(line, "solid") ~= nil) then dataType = "solid"; y = -1; end
+		if (string.find(line, "illusion") ~= nil) then dataType = "illusion"; y = -1; end
+		if (string.find(line, "background") ~= nil) then dataType = "background"; y = -1; end
 
-		for i, char in pairs(split(line, " ")) do
-			if (char ~= "0") then
-				if (blockType == "solid") then
-					self:SetSolidBlockID(x, y, tonumber(char))
-				elseif (blockType == "illusion") then
-					self:SetIllusionBlockID(x, y, tonumber(char))
+		if dataType == "background" then
+			self.backgroundID = tonumber(line)
+		else
+			for i, char in pairs(split(line, " ")) do
+				if (char ~= "0") then
+					if (dataType == "solid") then
+						self:SetSolidBlockID(x, y, tonumber(char))
+					elseif (dataType == "illusion") then
+						self:SetIllusionBlockID(x, y, tonumber(char))
+					end
 				end
+				x = x + 1
 			end
-			x = x + 1
+			y = y + 1
 		end
-		y = y + 1
 	end
 end
 
@@ -91,6 +109,11 @@ end
 
 function World:SaveToFile(fileLocation)
 	file = io.open("lvl.txt", "w")
+
+
+	file:write("[background] \n")
+	file:write(self.backgroundID .. " \n")
+
 	file:write("[solid] \n")
 	for y = 0, self.height do
 		lineString = ""
@@ -112,7 +135,7 @@ end
 
 function World:Draw(onlyDraw)
 	if onlyDraw == nil or onlyDraw == "Background" then
-   		love.graphics.draw(backgroundSprite, 0, 0)
+   		love.graphics.draw(self.bgList:GetBackgroundFromID(self.backgroundID), 0, 0)
    	end
    	if onlyDraw ~= "Background" then
 		for x = 0, self.width do

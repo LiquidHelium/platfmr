@@ -10,9 +10,9 @@ function WorldEditor:init(world)
    self.blockPicker = BlockPicker(self.EditorTop, self.blockSize, 20, 2, world:GetSpriteList())
    self.PlayButton = Button("playButton.png", 1235, 735)
 
-   self.SolidButton = Button("solidButton.png", 1200, 735)
-   self.IllusionButton = Button("illusionButton.png", 1180, 735)
-   self.BackgroundButton = Button("illusionButton.png", 1160, 735)
+   self.SolidButton = Button("solidButton.png", 1180, 725)
+   self.IllusionButton = Button("illusionButton.png", 1140, 725)
+   self.BackgroundButton = Button("bgButton.png", 1100, 725)
 end
 
 function WorldEditor:Draw(world)
@@ -54,15 +54,15 @@ function WorldEditor:DrawBottomBar()
 
    self.SolidButton:Draw()
    if self.blockType == "Solid" then
-      love.graphics.setColor(255, 255, 255, 100)
-      love.graphics.rectangle("line", self.SolidButton.pos.x-1, self.SolidButton.pos.y-1, 12, 32)
+      love.graphics.setColor(0, 0, 255, 100)
+      love.graphics.rectangle("fill", self.SolidButton.pos.x-1, self.SolidButton.pos.y-1, 32, 52)
       love.graphics.setColor(255, 255, 255, 255)
    end
 
    self.IllusionButton:Draw()
    if self.blockType == "Illusion" then
-      love.graphics.setColor(255, 255, 255, 100)
-      love.graphics.rectangle("line", self.IllusionButton.pos.x-1, self.IllusionButton.pos.y-1, 12, 32)
+      love.graphics.setColor(0, 0, 255, 100)
+      love.graphics.rectangle("fill", self.IllusionButton.pos.x-1, self.IllusionButton.pos.y-1, 32, 52)
       love.graphics.setColor(255, 255, 255, 255)
    end
 
@@ -120,7 +120,9 @@ function WorldEditor:MouseReleasedEvent(world, x, y, button)
    if (y > self.EditorTop) then
       self.blockPicker:MousePressedEvent(world, x, y, button)
 
-      if self.PlayButton:CheckIfPressed(x, y) then
+      if self.BackgroundButton:CheckIfPressed(x, y) then
+         world:ChangeBG()
+      elseif self.PlayButton:CheckIfPressed(x, y) then
          world:Reload()
          gameState = "play"
       elseif self.SolidButton:CheckIfPressed(x, y) then

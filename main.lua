@@ -9,6 +9,7 @@ require("button")
 require("player")
 require("gameplaymanager")
 require("spritelist")
+require("bglist")
 require("blockpicker")
 
 function love.load()
