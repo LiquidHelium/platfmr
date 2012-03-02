@@ -8,11 +8,11 @@ function WorldEditor:init(world)
    self.blockType = "Solid"
    self.EditorTop = 720
    self.blockPicker = BlockPicker(self.EditorTop, self.blockSize, 20, 2, world:GetSpriteList())
-   self.PlayButton = Button("playButton.png", 1235, 735)
+   self.PlayButton = Button("playButton.png", 1235, self.EditorTop + 15)
 
-   self.SolidButton = Button("solidButton.png", 1180, 725)
-   self.IllusionButton = Button("illusionButton.png", 1140, 725)
-   self.BackgroundButton = Button("bgButton.png", 1100, 725)
+   self.SolidButton = Button("solidButton.png", 1180, self.EditorTop+ 5)
+   self.IllusionButton = Button("illusionButton.png", 1140, self.EditorTop + 5)
+   self.BackgroundButton = Button("bgButton.png", 1100, self.EditorTop + 5)
 end
 
 function WorldEditor:Draw(world)
@@ -115,7 +115,7 @@ end
 
 function WorldEditor:MouseReleasedEvent(world, x, y, button)
    self.brushMode = "None"
-   world:SaveToFile("lvl.txt")
+   world:SaveToFile(world:GetLevelLocation())
 
    if (y > self.EditorTop) then
       self.blockPicker:MousePressedEvent(world, x, y, button)

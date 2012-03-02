@@ -9,16 +9,32 @@ function World:init(width, height, blockSize)
 	self.level = ""
    	self.backgroundID = 1
 
-	self.solidBlockMap = {}
-	self.illusionBlockMap = {}
-	for i=0, width do
-    	self.solidBlockMap[i] = {}
-    	self.illusionBlockMap[i] = {}
-    	for z=0, height do
-        	self.solidBlockMap[i][z] = 0
-        	self.illusionBlockMap[i][z] = 0
-	    end
-	end
+	levelList = LevelList()
+	self.currentLevel = 1
+
+	self:Clear()
+end
+
+function World:GetLevelLocation()
+	return levelList:GetLevelLocationFromID(self.currentLevel)
+end
+
+function World:IsNextLevel()
+	return levelList:ContainsID(self.currentLevel + 1)
+end
+
+function World:IsPrevLevel()
+	return levelList:ContainsID(self.currentLevel - 1)
+end
+
+function World:LoadNextLevel()
+	self.currentLevel = self.currentLevel + 1
+    self:LoadFromFile(levelList:GetLevelLocationFromID(self.currentLevel))
+end
+
+function World:LoadPrevLevel()
+	self.currentLevel = self.currentLevel - 1
+    self:LoadFromFile(levelList:GetLevelLocationFromID(self.currentLevel))
 end
 
 function World:GetBGList()
@@ -71,9 +87,23 @@ function World:IsTouchingSolid(rect)
 	return false
 end
 
+function World:Clear()
+	self.solidBlockMap = {}
+	self.illusionBlockMap = {}
+	for i=0, self.width do
+    	self.solidBlockMap[i] = {}
+    	self.illusionBlockMap[i] = {}
+    	for z=0, self.height do
+        	self.solidBlockMap[i][z] = 0
+        	self.illusionBlockMap[i][z] = 0
+	    end
+	end
+end
+
 function World:LoadFromFile(fileLocation)
+	self:Clear()
 	self.level = fileLocation 
-	file = io.open("lvl.txt", "r")
+	file = io.open(fileLocation, "r")
 	fileData = file:read("*all")
 	file:close()
 	dataType = "none"
@@ -108,7 +138,7 @@ function World:Reload()
 end
 
 function World:SaveToFile(fileLocation)
-	file = io.open("lvl.txt", "w")
+	file = io.open(fileLocation, "w")
 
 
 	file:write("[background] \n")

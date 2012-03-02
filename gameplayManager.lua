@@ -7,6 +7,9 @@ function GameplayManager:init(world)
 	self.EditorTop = 720
 	self.EditButton = Button("editButton.png", 1235, 735)
 
+	self.prevLevelButton = Button("leftArrowButton.png", 1140, 735)
+	self.nextLevelButton = Button("rightArrowButton.png", 1190, 735)
+
 	player = Player("player.png", 50, 50)
 end
 
@@ -41,7 +44,10 @@ end
 
 function GameplayManager:DrawBottomBarPlayMode()
 	self.EditButton:Draw()
+	self.prevLevelButton:Draw()
+	self.nextLevelButton:Draw()
    	love.graphics.print("FPS: " .. love.timer.getFPS(), 10, self.EditorTop + 10)
+   	love.graphics.print("LVL: " .. world.currentLevel, 10, self.EditorTop + 30)
 end
 
 
@@ -53,5 +59,11 @@ function GameplayManager:MouseReleasedEvent(world, x, y, button)
       	world:Reload()
       	self:Reload()
 		gameState = "edit"
+	elseif self.prevLevelButton:CheckIfPressed(x, y) and world:IsPrevLevel() then
+		world:LoadPrevLevel()
+      	self:Reload()
+	elseif self.nextLevelButton:CheckIfPressed(x, y)  and world:IsNextLevel() then
+		world:LoadNextLevel()
+      	self:Reload()
 	end
 end
