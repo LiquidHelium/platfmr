@@ -101,65 +101,64 @@ function World:Clear()
 end
 
 function World:LoadFromFile(fileLocation)
-	self:Clear()
-	self.level = fileLocation 
-	file = io.open(fileLocation, "r")
-	fileData = file:read("*all")
+
+	file = love.filesystem.newFile(fileLocation)
+	file:open('r')
+	fileData = file:read()
 	file:close()
-	dataType = "none"
 
-	y = 0
-	for i, line in pairs(split(fileData, "\n")) do
-		x = 0
-		if (string.find(line, "solid") ~= nil) then dataType = "solid"; y = -1; end
-		if (string.find(line, "illusion") ~= nil) then dataType = "illusion"; y = -1; end
-		if (string.find(line, "background") ~= nil) then dataType = "background"; y = -1; end
+	if (fileData ~= nil and string.len(fileData) > 10) then
+		decodedTable = json.decode(fileData)
 
-		if dataType == "background" then
-			self.backgroundID = tonumber(line)
-		else
-			for i, char in pairs(split(line, " ")) do
-				if (char ~= "0") then
-					if (dataType == "solid") then
-						self:SetSolidBlockID(x, y, tonumber(char))
-					elseif (dataType == "illusion") then
-						self:SetIllusionBlockID(x, y, tonumber(char))
-					end
-				end
-				x = x + 1
-			end
-			y = y + 1
-		end
+		self.backgroundID = decodedTable['Level']['Background']
+
+		for x=0, self.width do
+    		for y=0, self.height do
+    			if (decodedTable['Level']['SolidBlockMap'][tostring(x)][y] ~= nil) then
+    				self.solidBlockMap[x][y] = decodedTable['Level']['SolidBlockMap'][tostring(x)][y]
+    			end
+    			if (decodedTable['Level']['IllusionBlockMap'][tostring(x)][y] ~= nil) then
+    				self.illusionBlockMap[x][y] = decodedTable['Level']['IllusionBlockMap'][tostring(x)][y]
+    			end
+    		end
+    	end
+	else
+		self:Clear()
 	end
 end
 
 function World:Reload()
-	self:LoadFromFile(self.level)
+	self:LoadFromFile(self:GetLevelLocation(self.level))
 end
 
 function World:SaveToFile(fileLocation)
-	file = io.open(fileLocation, "w")
 
+	tempSolidBlockMap = {}
+	tempIllusionBlockMap = {}
 
-	file:write("[background] \n")
-	file:write(self.backgroundID .. " \n")
-
-	file:write("[solid] \n")
-	for y = 0, self.height do
-		lineString = ""
-		for x = 0, self.width do
-			lineString = lineString .. self:GetSolidBlockID(x, y) .. " "
-		end
-		file:write(lineString .. "\n")
+	for i=0, self.width do
+		tempSolidBlockMap[i] = {}
+		tempIllusionBlockMap[i] = {}
 	end
-	file:write("[illusion] \n")
-	for y = 0, self.height do
-		lineString = ""
-		for x = 0, self.width do
-			lineString = lineString .. self:GetIllusionBlockID(x, y) .. " "
-		end
-		file:write(lineString .. "\n")
-	end
+
+	for x=0, self.width do
+    	for y=1, self.height do
+    		table.insert(tempSolidBlockMap[x], self.solidBlockMap[x][y])
+    		table.insert(tempIllusionBlockMap[x], self.illusionBlockMap[x][y])
+    	end
+    end
+
+
+	jsonTable = {}
+	jsonTable['Level'] = {}
+	jsonTable['Level']['Background'] = self.backgroundID
+	jsonTable['Level']['SolidBlockMap'] = tempSolidBlockMap
+	jsonTable['Level']['IllusionBlockMap'] = tempIllusionBlockMap
+	encodedTable = json.encode(jsonTable)
+
+	file = love.filesystem.newFile(fileLocation)
+	file:open('w')
+	file:write(encodedTable)
 	file:close()
 end
 

@@ -115,7 +115,6 @@ end
 
 function WorldEditor:MouseReleasedEvent(world, x, y, button)
    self.brushMode = "None"
-   world:SaveToFile(world:GetLevelLocation())
 
    if (y > self.EditorTop) then
       self.blockPicker:MousePressedEvent(world, x, y, button)
@@ -123,6 +122,7 @@ function WorldEditor:MouseReleasedEvent(world, x, y, button)
       if self.BackgroundButton:CheckIfPressed(x, y) then
          world:ChangeBG()
       elseif self.PlayButton:CheckIfPressed(x, y) then
+         world:SaveToFile(world:GetLevelLocation())
          world:Reload()
          gameState = "play"
       elseif self.SolidButton:CheckIfPressed(x, y) then
