@@ -16,7 +16,7 @@ json = require("json")
 
 function love.load()
    love.graphics.setBackgroundColor(55, 55, 55)
-   world = World(80, 45, 16)
+   world = World(79, 45, 16)
    world:LoadFromFile("lvl/lvl.txt")
    gameplayManager = GameplayManager(world)
    worldEditor = WorldEditor(world)
@@ -52,6 +52,6 @@ function love.mousereleased(x, y, button)
    if gameState == "play" then
       gameplayManager:MouseReleasedEvent(world, x, y, button)
    elseif gameState == "edit" then
-      worldEditor:MouseReleasedEvent(world, x, y, button)
+      worldEditor:MouseReleasedEvent(world, gameplayManager, x, y, button)
    end
 end

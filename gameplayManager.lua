@@ -10,15 +10,15 @@ function GameplayManager:init(world)
 	self.prevLevelButton = Button("leftArrowButton.png", 1140, 735)
 	self.nextLevelButton = Button("rightArrowButton.png", 1190, 735)
 
-	player = Player("player.png", 50, 50)
+	player = Player("player.png", world.playerStartPos.x * self.blockSize, world.playerStartPos.y * self.blockSize)
 end
 
 function GameplayManager:Update(world)
 	player:Update(world)
 end
 
-function GameplayManager:Reload()
-	player = Player("player.png", 50, 50)
+function GameplayManager:Reload(world)
+	player = Player("player.png", world.playerStartPos.x * self.blockSize, world.playerStartPos.y * self.blockSize)
 end
 
 function GameplayManager:Draw(world)
@@ -57,13 +57,13 @@ end
 function GameplayManager:MouseReleasedEvent(world, x, y, button)
 	if self.EditButton:CheckIfPressed(x, y) then
       	world:Reload()
-      	self:Reload()
+      	self:Reload(world)
 		gameState = "edit"
 	elseif self.prevLevelButton:CheckIfPressed(x, y) and world:IsPrevLevel() then
 		world:LoadPrevLevel()
-      	self:Reload()
+      	self:Reload(world)
 	elseif self.nextLevelButton:CheckIfPressed(x, y)  and world:IsNextLevel() then
 		world:LoadNextLevel()
-      	self:Reload()
+      	self:Reload(world)
 	end
 end

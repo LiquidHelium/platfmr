@@ -13,13 +13,16 @@ function WorldEditor:init(world)
    self.SolidButton = Button("solidButton.png", 1180, self.EditorTop+ 5)
    self.IllusionButton = Button("illusionButton.png", 1140, self.EditorTop + 5)
    self.BackgroundButton = Button("bgButton.png", 1100, self.EditorTop + 5)
+   self.PlayerStartButton = Button("playerStartButton.png", 1060, self.EditorTop + 5)
 end
 
 function WorldEditor:Draw(world)
    self:DrawWorld(world)
-   self:DrawCursorSelect()
+   self:DrawCursorSelect(world)
    self:DrawBottomBar()
-   self:DrawBottomBarBlockMode()
+   if (self.blockType == "Solid" or self.blockType == "Illusion") then
+      self:DrawBottomBarBlockMode()
+   end
 end
 
 function WorldEditor:DrawWorld(world)
@@ -33,14 +36,25 @@ function WorldEditor:DrawWorld(world)
       world:Draw("Illusion")
       love.graphics.setColor(255, 255, 255, 100)
       world:Draw("Solid")
+   elseif self.blockType == "PlayerStart" then
+      world:Draw("Illusion")
+      world:Draw("Solid")
+      world:Draw("PlayerStart")
    end
    love.graphics.setColor(255, 255, 255, 255)
 end
 
-function WorldEditor:DrawCursorSelect()
-   if (love.mouse.getY() < self.EditorTop) then
+function WorldEditor:DrawCursorSelect(world)
+   if love.mouse.getY() < self.EditorTop then
+
+      if self.blockType == "Solid" or self.blockType == "Illusion" then
+         love.graphics.setColor(255, 255, 255, 50)
+         self.blockPicker:DrawCursor(math.floor(love.mouse.getX()/self.blockSize)*self.blockSize, math.floor(love.mouse.getY()/self.blockSize)*self.blockSize, world.spriteList)
+      end
       love.graphics.setColor(255, 255, 255, 100)
+
       love.graphics.rectangle("line", math.floor(love.mouse.getX()/self.blockSize)*self.blockSize, math.floor(love.mouse.getY()/self.blockSize)*self.blockSize, self.blockSize, self.blockSize)
+   
    end
 end
 
@@ -51,6 +65,13 @@ function WorldEditor:DrawBottomBar()
 
    self.PlayButton:Draw()
    self.BackgroundButton:Draw()
+
+   self.PlayerStartButton:Draw()
+   if self.blockType == "PlayerStart" then
+      love.graphics.setColor(0, 0, 255, 100)
+      love.graphics.rectangle("fill", self.PlayerStartButton.pos.x-1, self.PlayerStartButton.pos.y-1, 32, 52)
+      love.graphics.setColor(255, 255, 255, 255)
+   end
 
    self.SolidButton:Draw()
    if self.blockType == "Solid" then
@@ -97,38 +118,51 @@ function WorldEditor:MousePressedEvent(world, x, y, button)
       x = math.floor(x/self.blockSize)
       y = math.floor(y/self.blockSize)
 
-      if self.blockType == "Solid" then
-         if (world:GetSolidBlockID(x, y) ~= 0) then
-            self.brushMode = "Remove"
-         else
-            self.brushMode = "Place"
-         end
-      elseif self.blockType == "Illusion" then
-         if (world:GetIllusionBlockID(x, y) ~= 0) then
-            self.brushMode = "Remove"
-         else
-            self.brushMode = "Place"
+      if button == "l" then
+         if self.blockType == "PlayerStart" then
+            world.playerStartPos.x, world.playerStartPos.y = x, y
+         elseif self.blockType == "Solid" then
+            if (world:GetSolidBlockID(x, y) ~= 0) then
+               self.brushMode = "Remove"
+            else
+               self.brushMode = "Place"
+            end
+         elseif self.blockType == "Illusion" then
+            if (world:GetIllusionBlockID(x, y) ~= 0) then
+               self.brushMode = "Remove"
+            else
+               self.brushMode = "Place"
+            end
          end
       end
    end
 end
 
-function WorldEditor:MouseReleasedEvent(world, x, y, button)
+function WorldEditor:MouseReleasedEvent(world, gameplayManager, x, y, button)
    self.brushMode = "None"
 
-   if (y > self.EditorTop) then
-      self.blockPicker:MousePressedEvent(world, x, y, button)
 
-      if self.BackgroundButton:CheckIfPressed(x, y) then
-         world:ChangeBG()
-      elseif self.PlayButton:CheckIfPressed(x, y) then
-         world:SaveToFile(world:GetLevelLocation())
-         world:Reload()
-         gameState = "play"
-      elseif self.SolidButton:CheckIfPressed(x, y) then
-         self.blockType = "Solid" 
-      elseif self.IllusionButton:CheckIfPressed(x, y) then
-         self.blockType = "Illusion" 
+   if button == "l" then
+      if (y > self.EditorTop) then
+         if self.blockType == "Solid" or self.blockType == "Illusion" then
+            self.blockPicker:MousePressedEvent(world, x, y, button)
+         end 
+         if self.BackgroundButton:CheckIfPressed(x, y) then
+            world:ChangeBG()
+         elseif self.PlayButton:CheckIfPressed(x, y) then
+            world:SaveToFile(world:GetLevelLocation())
+            world:Reload()
+            gameplayManager:Reload(world)
+            gameState = "play"
+         elseif self.SolidButton:CheckIfPressed(x, y) then
+            self.blockType = "Solid" 
+         elseif self.IllusionButton:CheckIfPressed(x, y) then
+            self.blockType = "Illusion" 
+         elseif self.PlayerStartButton:CheckIfPressed(x, y) then
+            self.blockType = "PlayerStart" 
+         end
       end
+   else
+      self.blockPicker:MouseScrollCheck(world, button)
    end
 end

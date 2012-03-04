@@ -8,6 +8,8 @@ function World:init(width, height, blockSize)
 	self.bgList = BGList()
 	self.level = ""
    	self.backgroundID = 1
+   	self.playerStartPos = Vector(10, 10)
+   	self.playerStartSprite = love.graphics.newImage("img/player.png")
 
 	levelList = LevelList()
 	self.currentLevel = 1
@@ -111,6 +113,8 @@ function World:LoadFromFile(fileLocation)
 		decodedTable = json.decode(fileData)
 
 		self.backgroundID = decodedTable['Level']['Background']
+		self.playerStartPos.x = decodedTable['Level']['PlayerStart']['x']
+		self.playerStartPos.y = decodedTable['Level']['PlayerStart']['y']
 
 		for x=0, self.width do
     		for y=0, self.height do
@@ -152,6 +156,9 @@ function World:SaveToFile(fileLocation)
 	jsonTable = {}
 	jsonTable['Level'] = {}
 	jsonTable['Level']['Background'] = self.backgroundID
+	jsonTable['Level']['PlayerStart'] = {}
+	jsonTable['Level']['PlayerStart']['x'] = self.playerStartPos.x
+	jsonTable['Level']['PlayerStart']['y'] = self.playerStartPos.y
 	jsonTable['Level']['SolidBlockMap'] = tempSolidBlockMap
 	jsonTable['Level']['IllusionBlockMap'] = tempIllusionBlockMap
 	encodedTable = json.encode(jsonTable)
@@ -166,17 +173,20 @@ function World:Draw(onlyDraw)
 	if onlyDraw == nil or onlyDraw == "Background" then
    		love.graphics.draw(self.bgList:GetBackgroundFromID(self.backgroundID), 0, 0)
    	end
-   	if onlyDraw ~= "Background" then
+   	if onlyDraw == "PlayerStart" then
+   		love.graphics.draw(self.playerStartSprite, self.playerStartPos.x * self.blockSize, self.playerStartPos.y * self.blockSize)
+   	end
+   	if onlyDraw == "Solid" or onlyDraw == "Illusion" or onlyDraw == nil then
 		for x = 0, self.width do
 			for y = 0, self.height do
-				if onlyDraw == nil or onlyDraw == "Solid" then
-					if self:GetSolidBlockID(x, y) ~= 0 then
-						love.graphics.draw(self.spriteList:GetSpriteFromID(self:GetSolidBlockID(x, y)), x * self.blockSize, y * self.blockSize, 0, (self.blockSize / self.spriteList:GetSpriteFromID(self:GetSolidBlockID(x, y)):getWidth()))
-					end
-				end
 				if onlyDraw == nil or onlyDraw == "Illusion" then
 					if self:GetIllusionBlockID(x, y) ~= 0 then
 						love.graphics.draw(self.spriteList:GetSpriteFromID(self:GetIllusionBlockID(x, y)), x * self.blockSize, y * self.blockSize, 0, (self.blockSize / self.spriteList:GetSpriteFromID(self:GetIllusionBlockID(x, y)):getWidth()))
+					end
+				end
+				if onlyDraw == nil or onlyDraw == "Solid" then
+					if self:GetSolidBlockID(x, y) ~= 0 then
+						love.graphics.draw(self.spriteList:GetSpriteFromID(self:GetSolidBlockID(x, y)), x * self.blockSize, y * self.blockSize, 0, (self.blockSize / self.spriteList:GetSpriteFromID(self:GetSolidBlockID(x, y)):getWidth()))
 					end
 				end
 			end

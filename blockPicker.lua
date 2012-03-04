@@ -53,11 +53,16 @@ function BlockPicker:DrawTileButtons()
 	end
 end
 
-function BlockPicker:Draw()
+function BlockPicker:Draw(x, y)
 	self.leftArrowButton:Draw()
 	self.rightArrowButton:Draw()
 	self:DrawTileButtons()
 end
+
+function BlockPicker:DrawCursor(x, y, spriteList)
+	love.graphics.draw(spriteList:GetSpriteFromID(self:GetBlockID()), x, y, 0, self.blockSize/spriteList:GetSpriteFromID(self:GetBlockID()):getWidth())
+end
+
 
 function BlockPicker:MousePressedEvent(world, x, y, button)
 	if self.leftArrowButton:CheckIfPressed(x, y) and self.currentPage > 0 then
@@ -76,4 +81,14 @@ function BlockPicker:MousePressedEvent(world, x, y, button)
 			self.currentBlockID = i
 		end
 	end	
+end
+
+function BlockPicker:MouseScrollCheck(world, button)
+	if button == "wu" and self.currentBlockID < self:GetPageTotal() then
+		if world.spriteList:ContainsID(self.currentBlockID + 1 + self:GetPageStart(self.currentPage)) then
+			self.currentBlockID = self.currentBlockID + 1
+		end
+	elseif button == "wd" and self.currentBlockID > 1 then
+		self.currentBlockID = self.currentBlockID - 1
+	end
 end
