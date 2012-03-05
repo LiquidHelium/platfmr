@@ -138,7 +138,13 @@ function World:LoadFromFile(fileLocation)
 
 		if decodedTable['Level']['EntityList'] ~= nil then
 			for k, v in ipairs(decodedTable['Level']['EntityList']) do
-				self:AddEntity(v['id'], v['x'], v['y'], v['triggerPointsList'])
+				tempTriggerList = {}
+				if (v['triggerPointsList'] ~= nil) then
+					for o, p in ipairs(v['triggerPointsList']) do
+						table.insert(tempTriggerList, Vector(p['x'], p['y']))
+					end
+				end
+				self:AddEntity(v['id'], v['x'], v['y'], tempTriggerList)
 	   		end
 	   	end
 
@@ -182,7 +188,14 @@ function World:SaveToFile(fileLocation)
    		tempEntityList[k]['id'] = entityObject.entityType
    		tempEntityList[k]['x'] = entityObject.startTilePos.x
    		tempEntityList[k]['y'] = entityObject.startTilePos.y
-   		tempEntityList[k]['triggerPointsList'] = entityObject.triggerPointsList
+   		tempEntityList[k]['triggerPointsList'] = {}
+   		if(entityObject.TriggerPointsList ~= nil) then
+	   		for o, p in ipairs(entityObject.TriggerPointsList) do
+	   			tempEntityList[k]['triggerPointsList'][o] = {}
+	   			tempEntityList[k]['triggerPointsList'][o]['x'] = p.x
+	   			tempEntityList[k]['triggerPointsList'][o]['y'] = p.y
+	   		end
+	   	end
    	end
 
 
