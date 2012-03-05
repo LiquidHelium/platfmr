@@ -8,12 +8,14 @@ function WorldEditor:init(world)
    self.blockType = "Solid"
    self.EditorTop = 720
    self.blockPicker = BlockPicker(self.EditorTop, self.blockSize, 20, 2, world:GetSpriteList())
+   self.entityPicker = EntityPicker(self.EditorTop, self.blockSize, 20, 2, world:GetEntityList())
    self.PlayButton = Button("playButton.png", 1235, self.EditorTop + 15)
 
    self.SolidButton = Button("solidButton.png", 1180, self.EditorTop+ 5)
    self.IllusionButton = Button("illusionButton.png", 1140, self.EditorTop + 5)
    self.BackgroundButton = Button("bgButton.png", 1100, self.EditorTop + 5)
    self.PlayerStartButton = Button("playerStartButton.png", 1060, self.EditorTop + 5)
+   self.EntityButton = Button("entityButton.png", 1020, self.EditorTop + 5)
 end
 
 function WorldEditor:Draw(world)
@@ -22,6 +24,8 @@ function WorldEditor:Draw(world)
    self:DrawBottomBar()
    if (self.blockType == "Solid" or self.blockType == "Illusion") then
       self:DrawBottomBarBlockMode()
+   elseif (self.blockType == "Entity") then
+      self:DrawBottomBarEntityMode()
    end
 end
 
@@ -40,6 +44,11 @@ function WorldEditor:DrawWorld(world)
       world:Draw("Illusion")
       world:Draw("Solid")
       world:Draw("PlayerStart")
+   elseif self.blockType == "Entity" then
+      world:Draw("Entity")
+      love.graphics.setColor(255, 255, 255, 100)
+      world:Draw("Solid")
+      world:Draw("Illusion")
    end
    love.graphics.setColor(255, 255, 255, 255)
 end
@@ -87,10 +96,21 @@ function WorldEditor:DrawBottomBar()
       love.graphics.setColor(255, 255, 255, 255)
    end
 
+   self.EntityButton:Draw()
+   if self.blockType == "Entity" then
+      love.graphics.setColor(0, 0, 255, 100)
+      love.graphics.rectangle("fill", self.EntityButton.pos.x-1, self.EntityButton.pos.y-1, 32, 52)
+      love.graphics.setColor(255, 255, 255, 255)
+   end
+
 end
 
 function WorldEditor:DrawBottomBarBlockMode()
    self.blockPicker:Draw()
+end
+
+function WorldEditor:DrawBottomBarEntityMode()
+   self.entityPicker:Draw()
 end
 
 function WorldEditor:Update(world)
@@ -121,6 +141,8 @@ function WorldEditor:MousePressedEvent(world, x, y, button)
       if button == "l" then
          if self.blockType == "PlayerStart" then
             world.playerStartPos.x, world.playerStartPos.y = x, y
+         elseif self.blockType == "Entity" then
+            world:AddEntity(self.entityPicker:GetBlockID(), x, y)
          elseif self.blockType == "Solid" then
             if (world:GetSolidBlockID(x, y) ~= 0) then
                self.brushMode = "Remove"
@@ -141,7 +163,6 @@ end
 function WorldEditor:MouseReleasedEvent(world, gameplayManager, x, y, button)
    self.brushMode = "None"
 
-
    if button == "l" then
       if (y > self.EditorTop) then
          if self.blockType == "Solid" or self.blockType == "Illusion" then
@@ -160,6 +181,8 @@ function WorldEditor:MouseReleasedEvent(world, gameplayManager, x, y, button)
             self.blockType = "Illusion" 
          elseif self.PlayerStartButton:CheckIfPressed(x, y) then
             self.blockType = "PlayerStart" 
+         elseif self.EntityButton:CheckIfPressed(x, y) then
+            self.blockType = "Entity" 
          end
       end
    else

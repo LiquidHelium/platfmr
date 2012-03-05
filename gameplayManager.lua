@@ -15,6 +15,7 @@ end
 
 function GameplayManager:Update(world)
 	player:Update(world)
+	world:UpdateEntitys(player)
 end
 
 function GameplayManager:Reload(world)
@@ -33,7 +34,8 @@ function GameplayManager:DrawWorld(world)
 end
 
 function GameplayManager:DrawObjects()
-   player:Draw()
+   	player:Draw()
+	world:DrawEntitys()
 end
 
 function GameplayManager:DrawBottomBar()

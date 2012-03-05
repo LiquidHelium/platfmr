@@ -5,11 +5,14 @@ function World:init(width, height, blockSize)
 	self.height = height
 	self.blockSize = blockSize
 	self.spriteList = SpriteList()
+	self.entityList = EntityList()
 	self.bgList = BGList()
 	self.level = ""
    	self.backgroundID = 1
    	self.playerStartPos = Vector(10, 10)
    	self.playerStartSprite = love.graphics.newImage("img/player.png")
+
+   	self.entityContainer = {}
 
 	levelList = LevelList()
 	self.currentLevel = 1
@@ -51,6 +54,10 @@ function World:ChangeBG()
 	end
 end
 
+function World:GetEntityList()
+	return self.entityList
+end
+
 function World:GetSpriteList()
 	return self.spriteList
 end
@@ -69,6 +76,16 @@ end
 
 function World:SetIllusionBlockID(x, y, id)
 	self.illusionBlockMap[x][y] = id
+end
+
+function World:AddEntity(id, x, y, triggerPointsList)
+	for k, entityObject in ipairs(self.entityContainer) do
+   		if entityObject.startTilePos.x == x and entityObject.startTilePos.y == y then 
+   			table.remove(self.entityContainer, k)
+   			return
+   		end
+   	end
+	table.insert(self.entityContainer, self.entityList:CreateEntity(id, x, y, self.blockSize, triggerPointsList))
 end
 
 function World:IsTouchingSolid(rect)
@@ -90,6 +107,7 @@ function World:IsTouchingSolid(rect)
 end
 
 function World:Clear()
+	self.entityContainer = {}
 	self.solidBlockMap = {}
 	self.illusionBlockMap = {}
 	for i=0, self.width do
@@ -103,6 +121,8 @@ function World:Clear()
 end
 
 function World:LoadFromFile(fileLocation)
+	
+	self:Clear()
 
 	file = love.filesystem.newFile(fileLocation)
 	file:open('r')
@@ -116,6 +136,12 @@ function World:LoadFromFile(fileLocation)
 		self.playerStartPos.x = decodedTable['Level']['PlayerStart']['x']
 		self.playerStartPos.y = decodedTable['Level']['PlayerStart']['y']
 
+		if decodedTable['Level']['EntityList'] ~= nil then
+			for k, v in ipairs(decodedTable['Level']['EntityList']) do
+				self:AddEntity(v['id'], v['x'], v['y'], v['triggerPointsList'])
+	   		end
+	   	end
+
 		for x=0, self.width do
     		for y=0, self.height do
     			if (decodedTable['Level']['SolidBlockMap'][tostring(x)][y] ~= nil) then
@@ -126,8 +152,6 @@ function World:LoadFromFile(fileLocation)
     			end
     		end
     	end
-	else
-		self:Clear()
 	end
 end
 
@@ -139,6 +163,7 @@ function World:SaveToFile(fileLocation)
 
 	tempSolidBlockMap = {}
 	tempIllusionBlockMap = {}
+	tempEntityList = {}
 
 	for i=0, self.width do
 		tempSolidBlockMap[i] = {}
@@ -152,6 +177,14 @@ function World:SaveToFile(fileLocation)
     	end
     end
 
+    for k, entityObject in ipairs(self.entityContainer) do
+   		tempEntityList[k] = {}
+   		tempEntityList[k]['id'] = entityObject.entityType
+   		tempEntityList[k]['x'] = entityObject.startTilePos.x
+   		tempEntityList[k]['y'] = entityObject.startTilePos.y
+   		tempEntityList[k]['triggerPointsList'] = entityObject.triggerPointsList
+   	end
+
 
 	jsonTable = {}
 	jsonTable['Level'] = {}
@@ -161,6 +194,7 @@ function World:SaveToFile(fileLocation)
 	jsonTable['Level']['PlayerStart']['y'] = self.playerStartPos.y
 	jsonTable['Level']['SolidBlockMap'] = tempSolidBlockMap
 	jsonTable['Level']['IllusionBlockMap'] = tempIllusionBlockMap
+	jsonTable['Level']['EntityList'] = tempEntityList
 	encodedTable = json.encode(jsonTable)
 
 	file = love.filesystem.newFile(fileLocation)
@@ -169,12 +203,29 @@ function World:SaveToFile(fileLocation)
 	file:close()
 end
 
+function World:UpdateEntitys(player)
+	for k, entityObject in ipairs(self.entityContainer) do
+   		entityObject:Update(self, player)
+   	end
+end
+
+function World:DrawEntitys()
+	for k, entityObject in ipairs(self.entityContainer) do
+   		entityObject:Draw()
+   	end
+end
+
 function World:Draw(onlyDraw)
 	if onlyDraw == nil or onlyDraw == "Background" then
    		love.graphics.draw(self.bgList:GetBackgroundFromID(self.backgroundID), 0, 0)
    	end
    	if onlyDraw == "PlayerStart" then
    		love.graphics.draw(self.playerStartSprite, self.playerStartPos.x * self.blockSize, self.playerStartPos.y * self.blockSize)
+   	end
+   	if onlyDraw == "Entity" then
+   		for k, entityObject in ipairs(self.entityContainer) do
+   			entityObject:DrawForEditor()
+   		end
    	end
    	if onlyDraw == "Solid" or onlyDraw == "Illusion" or onlyDraw == nil then
 		for x = 0, self.width do
